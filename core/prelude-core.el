@@ -1,6 +1,6 @@
 ;;; prelude-core.el --- Emacs Prelude: Core Prelude functions.
 ;;
-;; Copyright © 2011-2014 Bozhidar Batsov
+;; Copyright © 2011-2015 Bozhidar Batsov
 ;;
 ;; Author: Bozhidar Batsov <bozhidar@batsov.com>
 ;; URL: https://github.com/bbatsov/prelude
@@ -181,16 +181,6 @@ point reaches the beginning or end of the buffer, stop there."
                       'display '(left-fringe right-triangle))
           'modification-hooks '(prelude-todo-ov-evaporate)))
 
-(defun prelude-copy-file-name-to-clipboard ()
-  "Copy the current buffer file name to the clipboard."
-  (interactive)
-  (let ((filename (if (equal major-mode 'dired-mode)
-                      default-directory
-                    (buffer-file-name))))
-    (when filename
-      (kill-new filename)
-      (message "Copied buffer file name '%s' to the clipboard." filename))))
-
 (defun prelude-get-positions-of-line-or-region ()
   "Return positions (beg . end) of the current line
 or region."
@@ -367,11 +357,12 @@ Repeated invocations toggle between the two most recently open buffers."
   "Kill all buffers but the current one.
 Doesn't mess with special buffers."
   (interactive)
-  (-each
-   (->> (buffer-list)
-     (-filter #'buffer-file-name)
-     (--remove (eql (current-buffer) it)))
-   #'kill-buffer))
+  (when (y-or-n-p "Are you sure you want to kill all buffers but the current one? ")
+    (-each
+        (->> (buffer-list)
+             (-filter #'buffer-file-name)
+             (--remove (eql (current-buffer) it)))
+      #'kill-buffer)))
 
 (defun prelude-create-scratch-buffer ()
   "Create a new scratch buffer."
@@ -383,6 +374,7 @@ Doesn't mess with special buffers."
 (defvar prelude-tips
   '("Press <C-c o> to open a file with external program."
     "Press <C-c p f> to navigate a project's files with ido."
+    "Press <s-r> to open a recently visited file."
     "Press <C-c p s g> to run grep on a project."
     "Press <C-c p p> to switch between projects."
     "Press <C-=> to expand the selected region."
@@ -401,6 +393,8 @@ Doesn't mess with special buffers."
     "Press <C-c C-z> in a Elisp buffer to launch an interactive Elisp shell."
     "Press <C-Backspace> to kill a line backwards."
     "Press <C-S-Backspace> or <s-k> to kill the whole line."
+    "Press <s-j> or <C-^> to join lines."
+    "Press <s-.> or <C-c j> to jump to the start of a word in any visible window."
     "Press <f11> to toggle fullscreen mode."
     "Press <f12> to toggle the menu bar."
     "Explore the Tools->Prelude menu to find out about some of Prelude extensions to Emacs."
@@ -486,6 +480,9 @@ With a prefix argument ARG, find the `user-init-file' instead."
   `(lambda (&optional arg)
      (interactive "P")
      (sp-wrap-with-pair ,s)))
+
+;; needed for prelude-goto-symbol
+(require 'imenu)
 
 (defun prelude-goto-symbol (&optional symbol-list)
   "Refresh imenu and jump to a place in the buffer using Ido."
