@@ -9,6 +9,21 @@
 (add-hook 'cider-repl-mode-hook 'smartparens-mode)
 (add-hook 'cider-repl-mode-hook 'rainbow-delimiters-mode)
 
+(defun cider-send-and-evaluate-sexp ()
+   "Sends the s-expression located before the point or the active
+region to the REPL and evaluates it. Then the Clojure buffer is
+activated as if nothing happened."
+   (interactive)
+   (if (not (region-active-p))
+       (cider-insert-last-sexp-in-repl)
+     (cider-insert-in-repl
+      (buffer-substring (region-beginning) (region-end)) nil))
+   (cider-switch-to-repl-buffer)
+   (cider-repl-closing-return)
+   (cider-switch-to-last-clojure-buffer)
+   (message ""))
+
+
 ;; ============= Emacs Settings 
 (setq default-frame-alist
       '((top . 20) (left . 40)
@@ -110,6 +125,8 @@
 ;(define-key global-map (kbd "s-1") 'dirtree) ;;
 (define-key global-map (kbd "s-F") 'iwb)
 (define-key global-map (kbd "C-x f") 'ido-find-file) ;; Because I trigger it accidently all the time
+
+(define-key global-map (kbd "s-P") 'cider-send-and-evaluate-sexp)
 
 (defun switch-to-previous-buffer ()
   "Switch to previously open buffer.
