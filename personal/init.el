@@ -1,5 +1,13 @@
 (message "Loading personal settings")
 
+
+;; ============= Packages 
+(prelude-require-packages 
+  '(smart-mode-line))
+
+
+
+
 ;; ============= Clojure Stuff
 
 ;; prevent from infinite printing
@@ -23,8 +31,14 @@ activated as if nothing happened."
    (cider-switch-to-last-clojure-buffer)
    (message ""))
 
+ (add-hook 'clojure-mode-hook 'prettify-symbols-mode)
+
 
 ;; ============= Emacs Settings 
+
+(setq prelude-whitespace nil)
+
+
 (setq default-frame-alist
       '((top . 20) (left . 40)
         (width . 150) (height . 75)))
@@ -36,70 +50,39 @@ activated as if nothing happened."
 ;; Shut up emacs!
 ;;(setq visible-bell 1)
 (setq ring-bell-function 'ignore)
+(setq prelude-whitespace nil)
 
 ;; Smooth scrolling
 (setq scroll-step            1
       scroll-conservatively  10000)
 
 ;; Status Line
+(sml/setup)
 (nyan-mode)
 
-(setq-default mode-line-format
-  (list
-    ;; the buffer name; the file name as a tool tip
-    '(:eval (propertize "%b " 'face 'font-lock-keyword-face
-        'help-echo (buffer-file-name)))
-
-    ;; line and column
-    "(" ;; '%02' to set to 2 chars at least; prevents flickering
-      (propertize "%02l" 'face 'font-lock-type-face) ","
-      (propertize "%02c" 'face 'font-lock-type-face) 
-    ") "
-
-    ;; relative position, size of file
-    '(:eval (list (nyan-create))) 
-
-    ;; the current major mode for the buffer.
-    "["
-
-    '(:eval (propertize "%m" 'face 'font-lock-string-face
-              'help-echo buffer-file-coding-system))
-    "] "
+(defun esk-pretty-fn ()
+   (font-lock-add-keywords nil `(("(\\(\\<fn\\>\\)"
+                                   (0 (progn (compose-region (match-beginning 1)
+                                                             (match-end 1)
+                                                             "\u03BB"
+                                                             'decompose-region)))))))
 
 
-    "[" ;; insert vs overwrite mode, input-method in a tooltip
-    '(:eval (propertize (if overwrite-mode "Ovr" "Ins")
-              'face 'font-lock-preprocessor-face
-              'help-echo (concat "Buffer is in "
-                           (if overwrite-mode "overwrite" "insert") " mode")))
 
-    ;; was this buffer modified since the last save?
-    '(:eval (when (buffer-modified-p)
-              (concat ","  (propertize "Mod"
-                             'face 'font-lock-warning-face
-                             'help-echo "Buffer has been modified"))))
-
-    ;; is this buffer read-only?
-    '(:eval (when buffer-read-only
-              (concat ","  (propertize "RO"
-                             'face 'font-lock-type-face
-                             'help-echo "Buffer is read-only"))))  
-    "] "
-
-    ;; add the time, with the date and the emacs uptime in the tooltip
-    '(:eval (propertize (format-time-string "%H:%M")
-              'help-echo
-              (concat (format-time-string "%c; ")
-                      (emacs-uptime "Uptime:%hh"))))
-    " --"
-    ;; i don't want to see minor-modes; but if you want, uncomment this:
-    ;; minor-mode-alist  ;; list of minor modes
-    "%-" ;; fill with '-'
-    ))
 
 ;; Line Numbers
 
 (global-linum-mode t)
+
+(defun new-shell ()
+  "Create a new shell buffer"
+  (interactive)
+  (let ((currentbuf (get-buffer-window (current-buffer)))
+        (newbuf     (generate-new-buffer-name "*shell*")))
+   (generate-new-buffer newbuf)
+   (set-window-dedicated-p currentbuf nil)
+   (set-window-buffer currentbuf newbuf)
+   (shell newbuf)))
 
 ;; ============= Key Bindings
 
@@ -124,9 +107,10 @@ activated as if nothing happened."
 ;(define-key global-map (kbd "s-3") 'smex) ;; eclipse style cmd-3 (MAC OS)
 ;(define-key global-map (kbd "s-1") 'dirtree) ;;
 (define-key global-map (kbd "s-F") 'iwb)
-(define-key global-map (kbd "C-x f") 'ido-find-file) ;; Because I trigger it accidently all the time
+(define-key global-map (kbd "C-x f") 'helm-find-files) ;; Because I trigger it accidently all the time
 
 (define-key global-map (kbd "s-P") 'cider-send-and-evaluate-sexp)
+(define-key global-map (kbd "s-1") 'new-shell)
 
 (defun switch-to-previous-buffer ()
   "Switch to previously open buffer.
