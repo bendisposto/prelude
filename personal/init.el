@@ -109,8 +109,8 @@ activated as if nothing happened."
 (define-key global-map (kbd "s-F") 'iwb)
 (define-key global-map (kbd "C-x f") 'helm-find-files) ;; Because I trigger it accidently all the time
 
-(define-key global-map (kbd "s-P") 'cider-send-and-evaluate-sexp)
 (define-key global-map (kbd "s-1") 'new-shell)
+(define-key global-map (kbd "C-c C-c") 'cider-send-and-evaluate-sexp)
 
 (defun switch-to-previous-buffer ()
   "Switch to previously open buffer.
