@@ -120,5 +120,9 @@ Repeated invocations toggle between the two most recently open buffers."
 
 (global-set-key (kbd "C-c b") 'switch-to-previous-buffer)
 
+(sp-pair "`" nil :actions :rem)
+
+
+
 
 (message "Personal settings loaded.")
